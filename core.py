@@ -100,12 +100,9 @@ movie_ID_with_ratings_RDD = (small_ratings_data.map(lambda x: (x[1], x[2])).grou
 movie_ID_with_avg_ratings_RDD = movie_ID_with_ratings_RDD.map(get_counts_and_averages)
 movie_rating_counts_RDD = movie_ID_with_avg_ratings_RDD.map(lambda x: (x[0], x[1][0]))
 
-
-
-
 new_user_ID = 0
 
-# The format of each line is (userID, movieID, rating)
+# format of each line is (userID, movieID, rating)
 new_user_ratings = [
      (0,260,4), # Star Wars (1977)
      (0,1,3), # Toy Story (1995)
@@ -127,13 +124,11 @@ new_ratings_model = ALS.train(small_data_with_new_ratings_RDD, best_rank, seed=s
 
 
 new_user_ratings_ids = map(lambda x: x[1], new_user_ratings) # get just movie IDs
-# keep just those not on the ID list (thanks Lei Li for spotting the error!)
 new_user_unrated_movies_RDD = (small_movies_data.filter(lambda x: x[0] not in new_user_ratings_ids).map(lambda x: (new_user_ID, x[0])))
 
-# Use the input RDD, new_user_unrated_movies_RDD, with new_ratings_model.predictAll() to predict new ratings for the movies
+# Use the input RDD with new_ratings_model.predictAll() to predict new ratings for the movies
 new_user_recommendations_RDD = new_ratings_model.predictAll(new_user_unrated_movies_RDD)
 
-# Transform new_user_recommendations_RDD into pairs of the form (Movie ID, Predicted Rating)
 new_user_recommendations_rating_RDD = new_user_recommendations_RDD.map(lambda x: (x.product, x.rating))
 new_user_recommendations_rating_title_and_count_RDD = \
     new_user_recommendations_rating_RDD.join(small_movies_titles).join(movie_rating_counts_RDD)
